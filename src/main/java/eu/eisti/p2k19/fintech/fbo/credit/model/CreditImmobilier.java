@@ -11,29 +11,29 @@ import org.apache.commons.math3.analysis.solvers.BisectionSolver;
 import eu.eisti.p2k19.fintech.fbo.credit.taeg.EquationValeurActualisee;
 
 /**
- * Crédit immobilier
+ * Crï¿½dit immobilier
  * @author Fabian
  *
  */
 public class CreditImmobilier extends Credit implements CreditAmortissable {
 
 	/**
-	 * Montant de la caution versée au Crédit Logement
+	 * Montant de la caution versï¿½e au Crï¿½dit Logement
 	 */
 	private double montantCaution;
 	
 	/**
-	 * Taux d'assurance : il est multiplié au capital emprunté pour obtenir la mensualité d'assurance
+	 * Taux d'assurance : il est multipliï¿½ au capital empruntï¿½ pour obtenir la mensualitï¿½ d'assurance
 	 */
 	private double tauxAssurance;
 	
 	/**
-	 * Date de déblocage initial des fonds
+	 * Date de dï¿½blocage initial des fonds
 	 */
 	private LocalDate dateDepart;
 	
-	public CreditImmobilier(double montantApport, double montantProjet, int duree, double taux, double montantCaution, double tauxAssurance, LocalDate dateDepart) throws TauxUsureException {
-		super(montantApport, montantProjet, duree, taux);
+	public CreditImmobilier(double montantApport, double montantProjet, double mensualite, double taux, double montantCaution, double tauxAssurance, LocalDate dateDepart) throws TauxUsureException {
+		super(montantApport, montantProjet, mensualite, taux);
 		this.montantCaution = montantCaution;
 		this.tauxAssurance = tauxAssurance;
 		this.dateDepart = dateDepart;
@@ -46,14 +46,14 @@ public class CreditImmobilier extends Credit implements CreditAmortissable {
 	@Override
 	public TableauAmortissement getTableauAmortissement() throws CreditPasRemboursableException {
 
-		// Le capital emprunté est le montant du projet auquel on retranche l'apport et auquel on ajoute la caution
+		// Le capital empruntï¿½ est le montant du projet auquel on retranche l'apport et auquel on ajoute la caution
 		double capital = montantProjet - montantApport + montantCaution;
 
 		TableauAmortissement tableau;
 		try {
 			tableau = new TableauAmortissement(capital, this.mensualite, this.taux, this.tauxAssurance, this.dateDepart);
 		} catch (CreditPasRemboursableException e) {
-			System.out.println("Le crédit n'est pas remboursable");
+			System.out.println("Le crï¿½dit n'est pas remboursable");
 			throw e;
 		}
 		return tableau;
@@ -68,10 +68,10 @@ public class CreditImmobilier extends Credit implements CreditAmortissable {
 		// Initialisation de la liste des flux financiers
 		List<FluxFinancier> fluxFinanciers = new ArrayList<FluxFinancier>();
 
-		// On ajoute un flux négatif de déblocage des fonds
+		// On ajoute un flux nï¿½gatif de dï¿½blocage des fonds
 		fluxFinanciers.add(new FluxFinancier(- this.montantProjet + this.montantApport - this.montantCaution, this.dateDepart));
 		
-		// On itère sur toutes les lignes du tableau d'amortissement
+		// On itï¿½re sur toutes les lignes du tableau d'amortissement
 		Iterator<LigneAmortissement> iterator = tableau.getLignes().iterator();
 		while(iterator.hasNext()) {
 			LigneAmortissement ligne = iterator.next();
@@ -79,14 +79,14 @@ public class CreditImmobilier extends Credit implements CreditAmortissable {
 			fluxFinanciers.add(new FluxFinancier(ligne.getMensualite(), ligne.getDate()));
 		}
 		
-		// Initialisation d'une équation des valeurs actualisées avec l'ensemble des flux financiers
+		// Initialisation d'une ï¿½quation des valeurs actualisï¿½es avec l'ensemble des flux financiers
         UnivariateFunction equationValeurActualisee = new EquationValeurActualisee(fluxFinanciers);
         
         // On utilise un algorithme de recherche de solution par dichotomie
         BisectionSolver bisectionSolver = new BisectionSolver();
       
-        // Le taux est recherché entre -100% et 100%, on demande à l'algorithme d'effectuer 100 itérations pour approcher
-        // un taeg pour lequel l'équation des valeurs actualisées se rapproche le plus possible de 0
+        // Le taux est recherchï¿½ entre -100% et 100%, on demande ï¿½ l'algorithme d'effectuer 100 itï¿½rations pour approcher
+        // un taeg pour lequel l'ï¿½quation des valeurs actualisï¿½es se rapproche le plus possible de 0
         double taux = bisectionSolver.solve(100, equationValeurActualisee, -100d, 100d);
         
         return taux;

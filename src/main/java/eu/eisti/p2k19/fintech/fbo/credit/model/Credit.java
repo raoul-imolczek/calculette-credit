@@ -10,7 +10,7 @@ public abstract class Credit {
 
 	private final static float TAUX_USURE = 20;
 	
-	protected Credit(double montantApport, double montantProjet, float mensualite, double taux) throws TauxUsureException {
+	protected Credit(double montantApport, double montantProjet, double mensualite, double taux) throws TauxUsureException {
 		super();
 		this.montantApport = montantApport;
 		this.montantProjet = montantProjet;
