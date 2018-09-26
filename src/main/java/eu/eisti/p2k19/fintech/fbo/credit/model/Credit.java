@@ -33,7 +33,7 @@ public abstract class Credit {
 		return mensualite;
 	}
 
-	public int getDuree() {
+	public int getDuree() throws CreditPasRemboursableException {
 		return duree;
 	}
 
