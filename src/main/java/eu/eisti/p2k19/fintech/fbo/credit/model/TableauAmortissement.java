@@ -1,8 +1,15 @@
 package eu.eisti.p2k19.fintech.fbo.credit.model;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.solvers.BisectionSolver;
+
+import eu.eisti.p2k19.fintech.fbo.credit.taeg.SoldeCredit;
 
 /**
  * Tableau d'amortissement
@@ -15,6 +22,25 @@ public class TableauAmortissement {
 	
 	public TableauAmortissement(double capital, double mensualite, double taux, double tauxAssurance, LocalDate dateDepart) throws CreditPasRemboursableException {
 
+		calculerTableauAmortissement(capital, mensualite, taux, tauxAssurance, dateDepart);
+		
+	}
+
+	public TableauAmortissement(double capital, int duree, double taux, double tauxAssurance, LocalDate dateDepart) throws CreditPasRemboursableException {
+        UnivariateFunction soldeCredit = new SoldeCredit(duree, capital, taux, tauxAssurance);
+        BisectionSolver bisectionSolver = new BisectionSolver();
+        double mensualite = bisectionSolver.solve(100, soldeCredit, 0, capital);
+	
+        System.out.println("MENSUALITE CALCULEE: " + mensualite);
+        
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        
+        calculerTableauAmortissement(capital, Double.parseDouble(df.format(mensualite).replace(',', '.')), taux, tauxAssurance, dateDepart);
+	}
+
+	private void calculerTableauAmortissement(double capital, double mensualite, double taux, double tauxAssurance,
+			LocalDate dateDepart) throws CreditPasRemboursableException {
 		// Il comporte autant de lignes que de mensualités versées
 		this.lignes = new ArrayList<LigneAmortissement>();
 		
@@ -55,7 +81,6 @@ public class TableauAmortissement {
 			}
 			
 		}
-		
 	}
 
 	public List<LigneAmortissement> getLignes() {

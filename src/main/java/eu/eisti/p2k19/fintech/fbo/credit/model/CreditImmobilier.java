@@ -1,5 +1,7 @@
 package eu.eisti.p2k19.fintech.fbo.credit.model;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -39,6 +41,13 @@ public class CreditImmobilier extends Credit implements CreditAmortissable {
 		this.dateDepart = dateDepart;
 	}
 
+	public CreditImmobilier(double montantApport, double montantProjet, int duree, double taux, double montantCaution, double tauxAssurance, LocalDate dateDepart) throws TauxUsureException {
+		super(montantApport, montantProjet, duree, taux);
+		this.montantCaution = montantCaution;
+		this.tauxAssurance = tauxAssurance;
+		this.dateDepart = dateDepart;
+	}
+	
 	public double getMontantCaution() {
 		return montantCaution;
 	}
@@ -51,9 +60,13 @@ public class CreditImmobilier extends Credit implements CreditAmortissable {
 
 		TableauAmortissement tableau;
 		try {
-			tableau = new TableauAmortissement(capital, this.mensualite, this.taux, this.tauxAssurance, this.dateDepart);
+			if (this.parLaMensualite) {
+				tableau = new TableauAmortissement(capital, this.mensualite, this.taux, this.tauxAssurance, this.dateDepart);
+			} else {
+				tableau = new TableauAmortissement(capital, this.duree, this.taux, this.tauxAssurance, this.dateDepart);
+			}			
 		} catch (CreditPasRemboursableException e) {
-			System.out.println("Le crï¿½dit n'est pas remboursable");
+			System.out.println("Le crédit n'est pas remboursable");
 			throw e;
 		}
 		return tableau;
@@ -89,15 +102,32 @@ public class CreditImmobilier extends Credit implements CreditAmortissable {
         // un taeg pour lequel l'équation des valeurs actualisïées se rapproche le plus possible de 0
         double taux = bisectionSolver.solve(100, equationValeurActualisee, -100d, 100d);
         
-        return taux;
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.HALF_UP);
+        
+        return Double.parseDouble(df.format(taux).replace(',', '.'));
 	}
 	
 	@Override
 	public int getDuree() throws CreditPasRemboursableException {
-		TableauAmortissement tableau = getTableauAmortissement();
-		this.duree = tableau.getLignes().size();
 		
+		if(this.parLaMensualite) {
+			TableauAmortissement tableau = getTableauAmortissement();
+			this.duree = tableau.getLignes().size();
+		}
+			
 		return super.getDuree();
+	}
+
+	@Override
+	public double getMensualite() throws CreditPasRemboursableException {
+		
+		if(!this.parLaMensualite) {
+			TableauAmortissement tableau = getTableauAmortissement();
+			this.mensualite = tableau.getLignes().get(0).getMensualite();
+		}
+			
+		return super.getMensualite();
 	}
 
 }

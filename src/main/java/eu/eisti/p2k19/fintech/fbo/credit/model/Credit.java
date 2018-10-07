@@ -7,6 +7,8 @@ public abstract class Credit {
 	protected double mensualite;
 	protected int duree;
 	protected double taux;
+	
+	protected boolean parLaMensualite;
 
 	private final static float TAUX_USURE = 20;
 	
@@ -19,8 +21,21 @@ public abstract class Credit {
 		if (this.taux > TAUX_USURE) {
 			throw new TauxUsureException();			
 		}
+		this.parLaMensualite = true;
 	}
 
+	protected Credit(double montantApport, double montantProjet, int duree, double taux) throws TauxUsureException {
+		super();
+		this.montantApport = montantApport;
+		this.montantProjet = montantProjet;
+		this.duree = duree;
+		this.taux = taux;
+		if (this.taux > TAUX_USURE) {
+			throw new TauxUsureException();			
+		}
+		this.parLaMensualite = false;
+	}
+	
 	public double getMontantApport() {
 		return montantApport;
 	}
@@ -29,7 +44,7 @@ public abstract class Credit {
 		return montantProjet;
 	}
 
-	public double getMensualite() {
+	public double getMensualite() throws CreditPasRemboursableException {
 		return mensualite;
 	}
 
